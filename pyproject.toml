@@ -38,7 +38,6 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-phi4 = ["flash-attn>=2.5.0"]
 qwen = ["qwen-vl-utils"]
 camera = ["opencv-python>=4.8.0"]
 tts = ["pyttsx3>=2.90", "gTTS>=2.3.0"]

@@ -44,9 +44,6 @@ setup(
         "requests>=2.28.0",
     ],
     extras_require={
-        "phi4": [
-            "flash-attn>=2.5.0",
-        ],
         "qwen": [
             "qwen-vl-utils",
         ],

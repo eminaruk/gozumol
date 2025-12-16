@@ -44,7 +44,6 @@ def load_model(
     model_id: str = DEFAULT_MODEL_ID,
     device: Optional[str] = None,
     torch_dtype: Optional[torch.dtype] = None,
-    use_flash_attention: bool = True,
     trust_remote_code: bool = True,
     low_memory_mode: bool = False
 ) -> AutoModelForCausalLM:
@@ -55,7 +54,6 @@ def load_model(
         model_id: HuggingFace model identifier
         device: Target device ("cuda", "cpu", or "auto")
         torch_dtype: Data type for model weights (auto-detected if None)
-        use_flash_attention: Whether to use Flash Attention 2 (GPU only)
         trust_remote_code: Whether to trust remote code execution
         low_memory_mode: Enable memory optimizations for limited RAM/VRAM
 
@@ -71,32 +69,19 @@ def load_model(
         else:
             torch_dtype = torch.float32
 
-    # Configure attention implementation
-    attn_implementation = "eager"  # Default: standard attention
-    if use_flash_attention and device == "cuda":
-        try:
-            import flash_attn
-            attn_implementation = "flash_attention_2"
-            print("Using Flash Attention 2")
-        except ImportError:
-            print("Flash Attention not installed. Using eager attention.")
-            attn_implementation = "eager"
-    else:
-        print("Using eager attention (standard)")
-
     # Configure device map
     if device == "cuda":
         device_map = "cuda"
     else:
         device_map = "cpu"
 
-    # Additional kwargs for memory optimization
+    # Model configuration
     model_kwargs = {
         "pretrained_model_name_or_path": model_id,
         "device_map": device_map,
         "torch_dtype": torch_dtype,
         "trust_remote_code": trust_remote_code,
-        "attn_implementation": attn_implementation,
+        "attn_implementation": "eager",  # Standard attention (no flash attention)
     }
 
     if low_memory_mode:

@@ -86,12 +86,6 @@ Examples:
         help="Show detailed timing information"
     )
 
-    parser.add_argument(
-        "--no-flash-attention",
-        action="store_true",
-        help="Disable Flash Attention 2 (use if you encounter errors)"
-    )
-
     return parser.parse_args()
 
 
@@ -121,7 +115,6 @@ def main():
         device=args.device if args.device != "auto" else None,
         scenario=args.scenario,
         max_new_tokens=args.max_tokens,
-        use_flash_attention=not args.no_flash_attention,
         low_memory_mode=args.low_memory,
     )
 

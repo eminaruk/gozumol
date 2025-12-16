@@ -7,9 +7,6 @@ transformers>=4.45.0
 accelerate>=0.25.0
 pillow>=10.0.0
 
-# For Phi-4 model (optional - requires GPU with flash attention)
-# flash-attn>=2.5.0
-
 # For Qwen2-VL model (optional)
 # qwen-vl-utils
 
