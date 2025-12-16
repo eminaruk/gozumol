@@ -72,13 +72,17 @@ def load_model(
             torch_dtype = torch.float32
 
     # Configure attention implementation
-    attn_implementation = None
+    attn_implementation = "eager"  # Default: standard attention
     if use_flash_attention and device == "cuda":
         try:
             import flash_attn
             attn_implementation = "flash_attention_2"
+            print("Using Flash Attention 2")
         except ImportError:
-            print("Flash Attention not available. Using default attention.")
+            print("Flash Attention not installed. Using eager attention.")
+            attn_implementation = "eager"
+    else:
+        print("Using eager attention (standard)")
 
     # Configure device map
     if device == "cuda":
@@ -92,10 +96,8 @@ def load_model(
         "device_map": device_map,
         "torch_dtype": torch_dtype,
         "trust_remote_code": trust_remote_code,
+        "attn_implementation": attn_implementation,
     }
-
-    if attn_implementation:
-        model_kwargs["attn_implementation"] = attn_implementation
 
     if low_memory_mode:
         model_kwargs["low_cpu_mem_usage"] = True
