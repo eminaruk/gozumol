@@ -10,7 +10,7 @@ from typing import Dict, List, Optional, Tuple, Union
 
 import torch
 from PIL import Image
-from transformers import AutoModelForCausalLM, AutoProcessor, GenerationConfig
+from transformers import AutoModelForCausalLM, AutoProcessor, GenerationConfig, AutoConfig
 
 from .utils import get_device, Timer
 
@@ -75,9 +75,22 @@ def load_model(
     else:
         device_map = "cpu"
 
+    # Load config first and force eager attention
+    print("Loading model config...")
+    config = AutoConfig.from_pretrained(
+        model_id,
+        trust_remote_code=trust_remote_code
+    )
+
+    # Force eager attention implementation (disable flash attention)
+    config._attn_implementation = "eager"
+    if hasattr(config, 'attn_implementation'):
+        config.attn_implementation = "eager"
+
     # Model configuration
     model_kwargs = {
         "pretrained_model_name_or_path": model_id,
+        "config": config,
         "device_map": device_map,
         "torch_dtype": torch_dtype,
         "trust_remote_code": trust_remote_code,
@@ -88,6 +101,7 @@ def load_model(
         model_kwargs["low_cpu_mem_usage"] = True
 
     # Load the model
+    print("Loading model weights...")
     model = AutoModelForCausalLM.from_pretrained(**model_kwargs)
 
     # Move to device if needed
