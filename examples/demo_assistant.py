@@ -75,12 +75,6 @@ Examples:
     )
 
     parser.add_argument(
-        "--low-memory",
-        action="store_true",
-        help="Enable low memory mode for limited RAM/VRAM"
-    )
-
-    parser.add_argument(
         "--show-timing",
         action="store_true",
         help="Show detailed timing information"
@@ -115,7 +109,6 @@ def main():
         device=args.device if args.device != "auto" else None,
         scenario=args.scenario,
         max_new_tokens=args.max_tokens,
-        low_memory_mode=args.low_memory,
     )
 
     # Analyze image

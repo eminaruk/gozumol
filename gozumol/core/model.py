@@ -10,7 +10,7 @@ from typing import Dict, List, Optional, Tuple, Union
 
 import torch
 from PIL import Image
-from transformers import AutoModelForCausalLM, AutoProcessor, GenerationConfig, AutoConfig
+from transformers import AutoModelForCausalLM, AutoProcessor, GenerationConfig
 
 from .utils import get_device, Timer
 
@@ -43,9 +43,7 @@ def load_processor(
 def load_model(
     model_id: str = DEFAULT_MODEL_ID,
     device: Optional[str] = None,
-    torch_dtype: Optional[torch.dtype] = None,
     trust_remote_code: bool = True,
-    low_memory_mode: bool = False
 ) -> AutoModelForCausalLM:
     """
     Load the Phi-4 multimodal model for inference.
@@ -53,60 +51,31 @@ def load_model(
     Args:
         model_id: HuggingFace model identifier
         device: Target device ("cuda", "cpu", or "auto")
-        torch_dtype: Data type for model weights (auto-detected if None)
         trust_remote_code: Whether to trust remote code execution
-        low_memory_mode: Enable memory optimizations for limited RAM/VRAM
 
     Returns:
         Loaded model instance
     """
     device = get_device(device)
 
-    # Determine optimal dtype
-    if torch_dtype is None:
-        if device == "cuda":
-            torch_dtype = torch.float16
-        else:
-            torch_dtype = torch.float32
+    # Load model exactly as in working notebook
+    print("Loading model...")
 
-    # Configure device map
     if device == "cuda":
-        device_map = "cuda"
+        model = AutoModelForCausalLM.from_pretrained(
+            model_id,
+            device_map="cuda",
+            torch_dtype="auto",
+            trust_remote_code=trust_remote_code,
+            attn_implementation="flash_attention_2",
+        ).cuda()
     else:
-        device_map = "cpu"
-
-    # Load config first and force eager attention
-    print("Loading model config...")
-    config = AutoConfig.from_pretrained(
-        model_id,
-        trust_remote_code=trust_remote_code
-    )
-
-    # Force eager attention implementation (disable flash attention)
-    config._attn_implementation = "eager"
-    if hasattr(config, 'attn_implementation'):
-        config.attn_implementation = "eager"
-
-    # Model configuration
-    model_kwargs = {
-        "pretrained_model_name_or_path": model_id,
-        "config": config,
-        "device_map": device_map,
-        "torch_dtype": torch_dtype,
-        "trust_remote_code": trust_remote_code,
-        "attn_implementation": "eager",  # Standard attention (no flash attention)
-    }
-
-    if low_memory_mode:
-        model_kwargs["low_cpu_mem_usage"] = True
-
-    # Load the model
-    print("Loading model weights...")
-    model = AutoModelForCausalLM.from_pretrained(**model_kwargs)
-
-    # Move to device if needed
-    if device == "cuda" and not str(next(model.parameters()).device).startswith("cuda"):
-        model = model.cuda()
+        model = AutoModelForCausalLM.from_pretrained(
+            model_id,
+            device_map="cpu",
+            torch_dtype=torch.float32,
+            trust_remote_code=trust_remote_code,
+        )
 
     return model
 

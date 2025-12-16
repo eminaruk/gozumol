@@ -56,7 +56,6 @@ class VisionAssistant:
         user_prompt: Optional[str] = None,
         scenario: str = "default",
         max_new_tokens: int = 1024,
-        low_memory_mode: bool = False,
         lazy_load: bool = False
     ):
         """
@@ -69,13 +68,11 @@ class VisionAssistant:
             user_prompt: Custom user prompt (overrides scenario)
             scenario: Prompt scenario ("default", "outdoor", "indoor", etc.)
             max_new_tokens: Maximum tokens to generate
-            low_memory_mode: Enable memory optimizations
             lazy_load: If True, defer model loading until first use
         """
         self.model_id = model_id
         self.device = get_device(device)
         self.max_new_tokens = max_new_tokens
-        self.low_memory_mode = low_memory_mode
 
         # Set prompts based on scenario or custom values
         if system_prompt is not None or user_prompt is not None:
@@ -100,7 +97,6 @@ class VisionAssistant:
         self._model = load_model(
             model_id=self.model_id,
             device=self.device,
-            low_memory_mode=self.low_memory_mode,
         )
         self._generation_config = load_generation_config(
             self.model_id,
